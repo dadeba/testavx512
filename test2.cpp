@@ -59,6 +59,24 @@ struct Loop : Xbyak::CodeGenerator {
 
     vmovups(ptr[sf.p[0]], zm0);
   }
+
+  MM() {
+    align(16);
+    
+    Xbyak::util::StackFrame sf(this, 3);
+    vmovups(zm0, ptr[sf.p[0]]);
+
+    vmovups(zm1, ptr[sf.p[1]]);
+
+    for(int i = 0; i < 4; i++) {
+      vmovups(zm2, ptr[sf.p[2] + i*64]);
+      vdpbf16ps(zm0, zm1, zm2);
+    }
+
+    vmovups(ptr[sf.p[0]], zm0);
+  }
+
+
 };
 
 int main()
