@@ -1,12 +1,16 @@
 CXX=g++
-CXX=g++-12
+CXX=dpcpp
 CXX=clang++-14
+CXX=g++-12
 
 CXXFLAGS=-Ixbyak -Iperf -O0
 CXXFLAGS=-Ixbyak -Iperf -O3
 LDFLAGS=
 
 all: test4.cpp
+	$(CXX) $(CXXFLAGS) $< $(LDFLAGS)
+
+mm: test5.cpp
 	$(CXX) $(CXXFLAGS) $< $(LDFLAGS)
 
 dis: dump.obj

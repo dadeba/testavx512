@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 template <int TYPE = PERF_TYPE_HARDWARE> class LinuxEvents {
   int fd;
@@ -113,10 +114,12 @@ performance_counters get_counters(bool flag = false) {
     linux_events.end(results);
     // g_counters[3 + 2] gives you the number of instructions 'decoded'
     // whereas g_counters[1] might give you the number of instructions 'retired'.
-    return performance_counters{(double)results[0], 0, 0, (double)results[1]};
+    std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now(); 
+    return performance_counters{(double)results[0], 0.0, 0.0, (double)results[1], time_now};
   } else {
     linux_events.start();
-    return performance_counters{0.0, 0.0, 0.0, 0.0};
+    std::chrono::steady_clock::time_point time_now = std::chrono::steady_clock::now(); 
+    return performance_counters{0.0, 0.0, 0.0, 0.0, time_now};
   }
 }
 
