@@ -104,7 +104,7 @@ int main()
     bfloat16 *a, *b; // input
     float *ref, *res1, *res2, *res3, *res4, *res5, *res6;
 
-    const int n = 32*8;
+    const int n = 32*8*4;
     const int lda = n;
     
     a = new bfloat16[n*n];
@@ -148,7 +148,7 @@ int main()
     std::cout << "outer avx ver4 "; output(now, ref, res5, ops);
 
     now = measure(LOOP, mm_blocked, mm_outer_avx_ver5, a, b, res6, n, lda);
-    std::cout << "outer avx ver4 "; output(now, ref, res6, ops);
+    std::cout << "outer avx ver5 "; output(now, ref, res6, ops);
 
   } catch (std::exception& e) {
     printf("ERR:%s\n", e.what());

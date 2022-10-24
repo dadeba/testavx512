@@ -105,93 +105,80 @@ struct AVXBF16_VER4 : Xbyak::CodeGenerator {
 };
 
 struct AVXBF16_VER5 : Xbyak::CodeGenerator {
-  AVXBF16_VER5() {
-    const unsigned int of0 = 0;
-    const unsigned int of1 = 64;
-    const unsigned int of2 = 128;
-    const unsigned int of3 = 192;
+  const unsigned int of0 = 0;
+  const unsigned int of1 = 64;
+  const unsigned int of2 = 128;
+  const unsigned int of3 = 192;
+  const unsigned int of4 = of0+256;
+  const unsigned int of5 = of1+256;
+  const unsigned int of6 = of2+256;
+  const unsigned int of7 = of3+256;
 
+  AVXBF16_VER5() {
     align(16);
     Xbyak::util::StackFrame sf(this, 3);
     vmovups(zm0, ptr[sf.p[2]+of0]);   // c : fp32 : 16 words
-    vmovups(zm1, ptr[sf.p[2]+of1]);   // c : fp32 : 16 words
-    vmovups(zm2, ptr[sf.p[2]+of2]);   // c : fp32 : 16 words
-    vmovups(zm3, ptr[sf.p[2]+of3]);   // c : fp32 : 16 words
+    vmovups(zm1, ptr[sf.p[2]+of1]);   
+    vmovups(zm2, ptr[sf.p[2]+of2]);   
+    vmovups(zm3, ptr[sf.p[2]+of3]);   
+    vmovups(zm4, ptr[sf.p[2]+of4]);  
+    vmovups(zm5, ptr[sf.p[2]+of5]);   
+    vmovups(zm6, ptr[sf.p[2]+of6]);   
+    vmovups(zm7, ptr[sf.p[2]+of7]);   
 
     mov(eax, ptr[sf.p[0]]  ); // a : bf16 : 2 words
-    vpbroadcastd(zm4, eax);
-
+    vpbroadcastd(zm20, eax);
     mov(eax, ptr[sf.p[0]+4]); // a : bf16 : 2 words
-    vpbroadcastd(zm5, eax);
+    vpbroadcastd(zm21, eax);
 
-    mov(eax, ptr[sf.p[0]+8]  ); // a : bf16 : 2 words
-    vpbroadcastd(zm6, eax);
+    mov(eax, ptr[sf.p[0]+of1]  );
+    vpbroadcastd(zm22, eax);
+    mov(eax, ptr[sf.p[0]+of1+4]);
+    vpbroadcastd(zm23, eax);
 
-    mov(eax, ptr[sf.p[0]+12]); // a : bf16 : 2 words
-    vpbroadcastd(zm7, eax);
+    mov(eax, ptr[sf.p[0]+of2]  ); 
+    vpbroadcastd(zm24, eax);
+    mov(eax, ptr[sf.p[0]+of2+4]); 
+    vpbroadcastd(zm25, eax);
 
-    /*
-    vmovdqu16(zm8,  ptr[sf.p[1]+of0+  0]); // b : bf16 : 32 words
-    vmovdqu16(zm9,  ptr[sf.p[1]+of0+256]); // b : bf16 : 32 words
-    vmovdqu16(zm10, ptr[sf.p[1]+of0+512]); // b : bf16 : 32 words
-    vmovdqu16(zm11, ptr[sf.p[1]+of0+784]); // b : bf16 : 32 words
+    mov(eax, ptr[sf.p[0]+of3]  );
+    vpbroadcastd(zm26, eax);
+    mov(eax, ptr[sf.p[0]+of3+4]);
+    vpbroadcastd(zm27, eax);
 
-    vdpbf16ps(zm0, zm8,  zm4); // c += a*b
-    vdpbf16ps(zm0, zm9,  zm5); // c += a*b
-    vdpbf16ps(zm0, zm10, zm6); // c += a*b
-    vdpbf16ps(zm0, zm11, zm7); // c += a*b
+    vmovdqu16(zm10, ptr[sf.p[1]+of0]); // b : bf16 : 32 words
+    vmovdqu16(zm11, ptr[sf.p[1]+of1]); 
+    vmovdqu16(zm12, ptr[sf.p[1]+of2]); 
+    vmovdqu16(zm13, ptr[sf.p[1]+of3]); 
+    
+    vdpbf16ps(zm0, zm10, zm20); // c += a*b
+    vdpbf16ps(zm0, zm12, zm21); 
+    vdpbf16ps(zm1, zm11, zm20); 
+    vdpbf16ps(zm1, zm13, zm21); 
 
-    vdpbf16ps(zm1, zm8,  zm4); // c += a*b
-    vdpbf16ps(zm1, zm9,  zm5); // c += a*b
-    vdpbf16ps(zm1, zm10, zm6); // c += a*b
-    vdpbf16ps(zm1, zm11, zm7); // c += a*b
+    vdpbf16ps(zm2, zm10, zm22); // c += a*b
+    vdpbf16ps(zm2, zm12, zm23); 
+    vdpbf16ps(zm3, zm11, zm22); 
+    vdpbf16ps(zm3, zm13, zm23); 
 
-    vdpbf16ps(zm2, zm8,  zm4); // c += a*b
-    vdpbf16ps(zm2, zm9,  zm5); // c += a*b
-    vdpbf16ps(zm2, zm10, zm6); // c += a*b
-    vdpbf16ps(zm2, zm11, zm7); // c += a*b
+    vdpbf16ps(zm4, zm10, zm24); // c += a*b
+    vdpbf16ps(zm4, zm12, zm25); 
+    vdpbf16ps(zm5, zm11, zm24); 
+    vdpbf16ps(zm5, zm13, zm25); 
 
-    vdpbf16ps(zm3, zm8,  zm4); // c += a*b
-    vdpbf16ps(zm3, zm9,  zm5); // c += a*b
-    vdpbf16ps(zm3, zm10, zm6); // c += a*b
-    vdpbf16ps(zm3, zm11, zm7); // c += a*b
-    */
-    /*
-    vmovdqu16(zm8,  ptr[sf.p[1]+of1+  0]); // b : bf16 : 32 words
-    vmovdqu16(zm9,  ptr[sf.p[1]+of1+256]); // b : bf16 : 32 words
-    vmovdqu16(zm10, ptr[sf.p[1]+of1+512]); // b : bf16 : 32 words
-    vmovdqu16(zm11, ptr[sf.p[1]+of1+784]); // b : bf16 : 32 words
-
-    vdpbf16ps(zm1, zm8,  zm4); // c += a*b
-    vdpbf16ps(zm1, zm9,  zm5); // c += a*b
-    vdpbf16ps(zm1, zm10, zm6); // c += a*b
-    vdpbf16ps(zm1, zm11, zm7); // c += a*b
-
-    vmovdqu16(zm8,  ptr[sf.p[1]+of2+  0]); // b : bf16 : 32 words
-    vmovdqu16(zm9,  ptr[sf.p[1]+of2+256]); // b : bf16 : 32 words
-    vmovdqu16(zm10, ptr[sf.p[1]+of2+512]); // b : bf16 : 32 words
-    vmovdqu16(zm11, ptr[sf.p[1]+of2+784]); // b : bf16 : 32 words
-
-    vdpbf16ps(zm2, zm8,  zm4); // c += a*b
-    vdpbf16ps(zm2, zm9,  zm5); // c += a*b
-    vdpbf16ps(zm2, zm10, zm6); // c += a*b
-    vdpbf16ps(zm2, zm11, zm7); // c += a*b
-
-    vmovdqu16(zm8,  ptr[sf.p[1]+of3+  0]); // b : bf16 : 32 words
-    vmovdqu16(zm9,  ptr[sf.p[1]+of3+256]); // b : bf16 : 32 words
-    vmovdqu16(zm10, ptr[sf.p[1]+of3+512]); // b : bf16 : 32 words
-    vmovdqu16(zm11, ptr[sf.p[1]+of3+784]); // b : bf16 : 32 words
-
-    vdpbf16ps(zm3, zm8,  zm4); // c += a*b
-    vdpbf16ps(zm3, zm9,  zm5); // c += a*b
-    vdpbf16ps(zm3, zm10, zm6); // c += a*b
-    vdpbf16ps(zm3, zm11, zm7); // c += a*b
-    */
+    vdpbf16ps(zm6, zm10, zm26); // c += a*b
+    vdpbf16ps(zm6, zm12, zm27); 
+    vdpbf16ps(zm7, zm11, zm26); 
+    vdpbf16ps(zm7, zm13, zm27); 
     
     vmovups(ptr[sf.p[2]+of0], zm0); // c : fp32 : 16 wrods
-    vmovups(ptr[sf.p[2]+of1], zm1); // c : fp32 : 16 wrods
-    vmovups(ptr[sf.p[2]+of2], zm2); // c : fp32 : 16 wrods
-    vmovups(ptr[sf.p[2]+of3], zm3); // c : fp32 : 16 wrods
+    vmovups(ptr[sf.p[2]+of1], zm1); 
+    vmovups(ptr[sf.p[2]+of2], zm2); 
+    vmovups(ptr[sf.p[2]+of3], zm3); 
+    vmovups(ptr[sf.p[2]+of4], zm4); 
+    vmovups(ptr[sf.p[2]+of5], zm5); 
+    vmovups(ptr[sf.p[2]+of6], zm6); 
+    vmovups(ptr[sf.p[2]+of7], zm7); 
   }
 };
 
@@ -369,30 +356,24 @@ void mm_outer_avx_ver5(bfloat16 *a, bfloat16 *b, float *c, const int n, const in
   AVXBF16_VER5 code;
   auto f = code.getCode<void (*)(const void *, const void *, void *)>();    
   
-  for(int k = 0; k < n; k += 8) {
-    bfloat16 btmpx[32*2*2*2];
+  for(int k = 0; k < n; k += 4) {
+    bfloat16 btmpx[32*2*2];
     
     for(int p = 0; p < 32; p++) {
-      bfloat16 tmp[8];
-      for(int kk = 0; kk < 8; kk++) {
+      bfloat16 tmp[4];
+      for(int kk = 0; kk < 4; kk++) {
 	tmp[kk] = b[(k + kk)*lda + p]; 
       }
-      btmpx[2*p      ] = tmp[0];
-      btmpx[2*p+1    ] = tmp[1];
-      btmpx[2*p  +64 ] = tmp[2];
-      btmpx[2*p+1+64 ] = tmp[3];
-      btmpx[2*p  +128] = tmp[4];
-      btmpx[2*p+1+128] = tmp[5];
-      btmpx[2*p  +192] = tmp[6];
-      btmpx[2*p+1+192] = tmp[7];
+      btmpx[2*p     ] = tmp[0];
+      btmpx[2*p+1   ] = tmp[1];
+      btmpx[2*p  +64] = tmp[2];
+      btmpx[2*p+1+64] = tmp[3];
     }
 
-    for(int j = 0; j < n; j++) {
-
-
-
-      f(&a[j*lda+k], btmpx, &c[j*lda+0]);
+    for(int j = 0; j < n; j += 4) {
+      f(&a[(j  )*lda+k], btmpx, &c[(j  )*lda+0]);
     }
+    
   }
 }
 

@@ -69,9 +69,9 @@ int main()
 	a[j*32+i] = f2b(urdist(mt));
 	b[j*32+i] = f2b(urdist(mt));
 
-	a[j*32+i] = f2b(1.0);
-	if (i == j ) b[j*32+i] = f2b(1.0);
-	else         b[j*32+i] = f2b(0.0);
+	//	a[j*32+i] = f2b(1.0);
+	//	if (i == j ) b[j*32+i] = f2b(1.0);
+	//	else         b[j*32+i] = f2b(0.0);
       }
     }
 
