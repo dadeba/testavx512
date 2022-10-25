@@ -68,13 +68,31 @@ int main()
       for(int i = 0; i < 32; i++) {
 	a[j*32+i] = f2b(urdist(mt));
 	b[j*32+i] = f2b(urdist(mt));
-
-	//	a[j*32+i] = f2b(1.0);
+	
+	//	a[j*32+i] = f2b(i);
 	//	if (i == j ) b[j*32+i] = f2b(1.0);
 	//	else         b[j*32+i] = f2b(0.0);
       }
     }
+    {
+      AVXBF16_VER4x c;
+      printf("Xbyak version=%s\n", c.getVersionString());
 
+      auto f = c.getCode<void (*)(const void *, const void *, void *, int)>();    
+      FILE *fp = fopen("dump.obj", "w");
+      fwrite((const void *)f, c.getSize(), 1, fp);
+      fclose(fp);
+    }
+    {
+      AVXBF16_VER4 c;
+      printf("Xbyak version=%s\n", c.getVersionString());
+
+      auto f = c.getCode<void (*)(const void *, const void *, void *, int)>();    
+      FILE *fp = fopen("dump2.obj", "w");
+      fwrite((const void *)f, c.getSize(), 1, fp);
+      fclose(fp);
+    }
+    
     double ops = 2.0*pow(32.0, 3.0);
     
     const int LOOP = 225;
@@ -98,6 +116,9 @@ int main()
     now = measure(LOOP, mm_outer_avx_ver4, a, b, res5, 32, 32);
     std::cout << "outer avx ver4 "; output(now, ref, res5, ops);
 
+    now = measure(LOOP, mm_outer_avx_ver4x, a, b, res5, 32, 32);
+    std::cout << "outer avx ver4 "; output(now, ref, res5, ops);
+    
     now = measure(LOOP, mm_outer_avx_ver5, a, b, res6, 32, 32);
     std::cout << "outer avx ver5 "; output(now, ref, res6, ops);
 

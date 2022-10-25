@@ -80,10 +80,10 @@ struct AVXBF16_VER4 : Xbyak::CodeGenerator {
     Xbyak::util::StackFrame sf(this, 3);
     vmovups(zm3, ptr[sf.p[2]   ]);   // c : fp32 : 16 words
     vmovups(zm4, ptr[sf.p[2]+64]);   // c : fp32 : 16 words
-
+    
     mov(eax, ptr[sf.p[0]]  ); // a : bf16 : 2 words
     vpbroadcastd(zm0, eax);
-
+        
     mov(eax, ptr[sf.p[0]+4]); // a : bf16 : 2 words
     vpbroadcastd(zm5, eax);
 
@@ -103,6 +103,53 @@ struct AVXBF16_VER4 : Xbyak::CodeGenerator {
     vmovups(ptr[sf.p[2]+64], zm4); // c : fp32 : 16 wrods
   }
 };
+
+
+struct AVXBF16_VER4x : Xbyak::CodeGenerator {
+  const unsigned int off = 64;
+  
+  AVXBF16_VER4x() {
+    align(16);
+    Xbyak::util::StackFrame sf(this, 4);
+    vmovdqu16(zm1, ptr[sf.p[1]   ]); // b : bf16 : 32 words
+    vmovdqu16(zm2, ptr[sf.p[1]+64]); // b : bf16 : 32 words
+    vmovdqu16(zm6, ptr[sf.p[1]+128]); // b : bf16 : 32 words
+    vmovdqu16(zm7, ptr[sf.p[1]+192]); // b : bf16 : 32 words
+
+    xor_(r9, r9); // j
+L(".loop");
+    mov(r10, r9);
+    shl(r10, 5);   // j*lda (j<<5)
+
+    mov(r11, r10);
+    shl(r11, 2);                // 32bit
+    add(r11, sf.p[2]);          // &c[j*lda];
+    vmovups(zm3, ptr[r11]);     // c : fp32 : 16 words
+    vmovups(zm4, ptr[r11+off]); // c : fp32 : 16 words
+
+    add(r10, sf.p[3]); // j<<5+k
+    shl(r10, 1);       // 16bit
+    add(r10, sf.p[0]); // &a[j*32+k];
+    
+    mov(eax, ptr[r10]);      // a : bf16 : 2 words
+    vpbroadcastd(zm0, eax);
+    mov(eax, ptr[r10+4]);    // a : bf16 : 2 words
+    vpbroadcastd(zm5, eax);
+    
+    vdpbf16ps(zm3, zm1, zm0); // c += a*b
+    vdpbf16ps(zm4, zm2, zm0); // c += a*b
+    vdpbf16ps(zm3, zm6, zm5); // c += a*b
+    vdpbf16ps(zm4, zm7, zm5); // c += a*b
+
+    vmovups(ptr[r11   ],  zm3); // c : fp32 : 16 wrods
+    vmovups(ptr[r11+off], zm4); // c : fp32 : 16 wrods
+
+    inc(r9);
+    cmp(r9,32);
+    jb(".loop");
+  }
+};
+
 
 struct AVXBF16_VER5 : Xbyak::CodeGenerator {
   const unsigned int of0 = 0;
@@ -345,9 +392,32 @@ void mm_outer_avx_ver4(bfloat16 *a, bfloat16 *b, float *c, const int n, const in
       btmpx[2*p+1+64] = tmp[3];
     }
 
-    for(int j = 0; j < n; j++) {
+    for(int j = 0; j < 32; j++) {
       f(&a[j*lda+k], btmpx, &c[j*lda+0]);
     }
+  }
+}
+
+void mm_outer_avx_ver4x(bfloat16 *a, bfloat16 *b, float *c, const int n, const int lda)
+{
+  AVXBF16_VER4x code;
+  auto f = code.getCode<void (*)(const void *, const void *, void *, int)>();    
+  
+  for(int k = 0; k < n; k += 4) {
+    bfloat16 btmpx[32*2*2];
+    
+    for(int p = 0; p < 32; p++) {
+      bfloat16 tmp[4];
+      for(int kk = 0; kk < 4; kk++) {
+	tmp[kk] = b[(k + kk)*lda + p]; 
+      }
+      btmpx[2*p     ] = tmp[0];
+      btmpx[2*p+1   ] = tmp[1];
+      btmpx[2*p  +64] = tmp[2];
+      btmpx[2*p+1+64] = tmp[3];
+    }
+
+    f(a, btmpx, c, k);
   }
 }
 
@@ -373,7 +443,6 @@ void mm_outer_avx_ver5(bfloat16 *a, bfloat16 *b, float *c, const int n, const in
     for(int j = 0; j < n; j += 4) {
       f(&a[(j  )*lda+k], btmpx, &c[(j  )*lda+0]);
     }
-    
   }
 }
 

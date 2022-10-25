@@ -1,9 +1,9 @@
-CXX=g++-12
 CXX=dpcpp
 CXX=g++
+CXX=g++-12
 CXX=clang++-14
 
-CXXFLAGS=-Ixbyak -Iperf -O0
+CXXFLAGS=-Ixbyak -Iperf -O0 -g
 CXXFLAGS=-Ixbyak -Iperf -O3
 LDFLAGS=
 
